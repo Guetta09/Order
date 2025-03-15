@@ -7,3 +7,9 @@
 <script setup lang="ts">
 import { IonApp, IonRouterOutlet } from '@ionic/vue';
 </script>
+
+<style>
+ion-app {
+  background: white;
+}
+</style>
