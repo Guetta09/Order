@@ -34,18 +34,14 @@
    git clone https://github.com/tu-usuario/order.git
    cd order
 2️⃣ Instala las dependencias:
-
-sh
-Copiar
 Editar
 npm install
+
 3️⃣ Ejecuta la app en modo desarrollo:
 
-sh
-Copiar
-Editar
 ionic serve
 🛠️ Contribuciones
+
 Si quieres ayudar a mejorar Order, siéntete libre de hacer un fork y enviar un pull request. 😃
 
 📩 Para dudas o sugerencias, ¡contáctame!
