@@ -3,12 +3,16 @@
     <ion-content class="login-container">
       <div class="form-wrapper">
         <h1>Iniciar Sesión</h1>
-        
+
         <input placeholder="Correo Electrónico" v-model="email" class="input" name="email" type="email" />
         <input placeholder="Contraseña" v-model="password" class="input" name="password" type="password" />
-        
-        <button class="login-button" @click="login">Iniciar Sesión</button>
-        <p>¿No tienes cuenta? <router-link to="/register">Regístrate</router-link></p>
+
+        <button class="login-button" @click="login" :disabled="loading">
+          {{ loading ? 'Ingresando...' : 'Iniciar Sesión' }}
+        </button>
+
+        <p>¿No tiene cuenta mi perro? <router-link to="/register">Registrese manito</router-link></p>
+        <p><a href="#" @click.prevent="goToRecovery">¿Se le olvidó la clave perrito?</a></p>
       </div>
     </ion-content>
   </ion-page>
@@ -18,23 +22,59 @@
 import { IonPage, IonContent } from '@ionic/vue';
 import { ref } from 'vue';
 import { auth } from '../firebase';
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { useRouter } from 'vue-router';
 
 const email = ref('');
 const password = ref('');
+const loading = ref(false);
 const router = useRouter();
 
+// Persistencia de sesión
+setPersistence(auth, browserLocalPersistence).catch((error) => {
+  console.error("Error en persistencia de sesión:", error);
+});
+
 const login = async () => {
+  if (!email.value || !password.value) {
+    alert("Por favor completa todos los campos.");
+    return;
+  }
+
+  loading.value = true;
+
   try {
     await signInWithEmailAndPassword(auth, email.value, password.value);
     alert("Inicio de sesión exitoso");
     router.push('/dashboard');
   } catch (error: any) {
-    alert(error.message);
+    handleAuthError(error.code);
+  } finally {
+    loading.value = false;
   }
 };
+
+const handleAuthError = (code: string) => {
+  switch (code) {
+    case "auth/user-not-found":
+      alert("El usuario no existe.");
+      break;
+    case "auth/wrong-password":
+      alert("Contraseña incorrecta.");
+      break;
+    case "auth/invalid-email":
+      alert("Correo electrónico inválido.");
+      break;
+    default:
+      alert("Error al iniciar sesión. Intenta nuevamente.");
+  }
+};
+
+const goToRecovery = () => {
+  router.push('/recover');
+};
 </script>
+
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap');
