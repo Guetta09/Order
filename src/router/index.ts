@@ -8,6 +8,8 @@ import HomePage from '../views/HomePage.vue';
 import TareasPage from '../views/TareasPage.vue';
 import ResumenPage from '../views/ResumenPage.vue';
 import ConfiguracionPage from '../views/ConfiguracionPage.vue';
+import Recover from '@/views/Recover.vue';
+import { Component } from 'ionicons/dist/types/stencil-public-runtime';
 
 // Definición de rutas
 const routes = [
@@ -17,7 +19,8 @@ const routes = [
   { path: '/home', component: HomePage },
   { path: '/tareas', component: TareasPage },
   { path: '/resumen', component: ResumenPage },
-  { path: '/configuration', component: ConfiguracionPage }
+  { path: '/configuration', component: ConfiguracionPage },
+  { path: '/recover', component: Recover}
 ];
 
 // Crear el router
