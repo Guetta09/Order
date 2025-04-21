@@ -1,29 +1,45 @@
 <template>
   <ion-page>
+    <!-- Encabezado -->
     <ion-header>
       <ion-toolbar style="--background: #800000;">
-        <ion-buttons slot="start" class="nav-links">
-          <ion-button
-            v-for="(link, index) in navLinks"
-            :key="index"
-            :router-link="link.route"
-            :class="{ activo: rutaActual === link.route }"
-            fill="clear"
-          >
-            {{ link.label }}
-          </ion-button>
-        </ion-buttons>
+        <ion-title style="color: white; text-align: center;">Panel Principal</ion-title>
         <ion-buttons slot="end">
           <ion-button @click="logout" color="light">Cerrar Sesión</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding fondo-oscuro">
-      <h1 class="titulo">Panel Principal</h1>
-      <p style="text-align: center; color: white;">Aquí puedes visualizar el resumen de tus hábitos, estadísticas o notificaciones.</p>
-      <!-- Aquí puedes agregar más tarjetas, gráficas o información -->
+    <!-- Contenido principal -->
+    <ion-content class="ion-padding fondo-oscuro" :fullscreen="true">
+      <div class="main-content">
+        <h1 class="titulo">Panel Principal</h1>
+        <p style="text-align: center; color: white;">
+          Aquí puedes visualizar el resumen de tus hábitos, estadísticas o notificaciones.
+        </p>
+      </div>
     </ion-content>
+
+    <!-- Footer de navegación -->
+    <ion-footer>
+      <ion-toolbar class="footer-bar">
+        <ion-buttons class="footer-nav" slot="start">
+          <ion-button
+            v-for="(link, index) in navLinks"
+            :key="index"
+            fill="clear"
+          >
+            <router-link
+              :to="link.route"
+              class="custom-link"
+              :class="{ activo: rutaActual === link.route }"
+            >
+              {{ link.label }}
+            </router-link>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-footer>
   </ion-page>
 </template>
 
@@ -35,6 +51,8 @@ import {
   IonButtons,
   IonButton,
   IonContent,
+  IonFooter,
+  IonTitle
 } from '@ionic/vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -55,10 +73,10 @@ router.afterEach((to) => {
 
 const navLinks = [
   { label: 'Home', route: '/home' },
-  { label: 'Tareas', route: '/tareas' },
-  { label: 'Resumen', route: '/resumen' },
+  { label: 'Estadísticas', route: '/resumen' },
   { label: 'Configuración', route: '/configuration' }
 ];
+
 </script>
 
 <style scoped>
@@ -67,8 +85,12 @@ const navLinks = [
   color: #ffffff;
 }
 
-ion-content {
-  color: white;
+.main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 40px;
 }
 
 .titulo {
@@ -79,16 +101,43 @@ ion-content {
   color: white;
 }
 
-.nav-links ion-button {
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
-  transition: all 0.3s ease;
-  border-radius: 8px;
-  margin-right: 5px;
+.footer-bar {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  --background: #800000;
 }
 
-.nav-links ion-button.activo {
-  border: 2px solid rgba(255, 255, 255, 0.4);
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.footer-nav ion-button {
+  flex: 1 1 45%; /* permite que se acomoden de a dos por línea si es necesario */
+  min-width: 90px;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  margin: 2px 0;
+  text-align: center;
+}
+
+
+.custom-link {
+  color: white;
+  text-decoration: none;
+  padding: 6px 12px;
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+}
+
+.custom-link.activo {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
 }
 </style>
