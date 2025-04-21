@@ -22,14 +22,14 @@
     <ion-content class="ion-padding fondo-oscuro">
       <h1 class="titulo">Tareas del día</h1>
       
-      <div v-for="(tarea, index) in tareas" :key="index" class="tarea-item">
+      <div v-for="(tarea, index) in taskStore.tareas" :key="index" class="tarea-item">
         <div class="hora">{{ tarea.hora }}</div>
         <div class="descripcion">{{ tarea.descripcion }}</div>
         <ion-toggle v-model="tarea.completado" color="success" />
         <ion-icon
           :icon="trashOutline"
           class="icono-basura"
-          @click="eliminarTarea(index)"
+          @click="taskStore.eliminarTarea(index)"
         />
       </div>
 
@@ -49,14 +49,18 @@ import {
   IonButton,
   IonContent,
   IonToggle,
-  IonIcon
+  IonIcon,
+  alertController
 } from '@ionic/vue';
 import { trashOutline } from 'ionicons/icons';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { alertController } from '@ionic/vue';
+
+// 👉 Importar la store de tareas
+import { useTaskStore } from '@/stores/taskStore';
+const taskStore = useTaskStore();
 
 const router = useRouter();
 
@@ -74,18 +78,12 @@ const navLinks = [
   { label: 'Home', route: '/home' },
   { label: 'Tareas', route: '/tareas' },
   { label: 'Resumen', route: '/resumen' },
-  { label: 'Configuración', route: '/configuration' }
+  { label: 'Configuración', route: '/configuracion' }
 ];
-
-const tareas = ref([
-  { hora: '6:00 a.m', descripcion: 'Despertar', completado: true },
-  { hora: '7:00 a.m', descripcion: 'Desayuno', completado: false },
-  { hora: '8:00 a.m', descripcion: 'Ir a clase', completado: false }
-]);
 
 const mostrarAlertaAgregar = async () => {
   const alert = await alertController.create({
-    header: 'Nuevo hábito',
+    header: 'Nueva tarea',
     inputs: [
       {
         name: 'hora',
@@ -95,7 +93,7 @@ const mostrarAlertaAgregar = async () => {
       {
         name: 'descripcion',
         type: 'text',
-        placeholder: 'Nombre'
+        placeholder: 'Descripción'
       }
     ],
     buttons: [
@@ -107,11 +105,7 @@ const mostrarAlertaAgregar = async () => {
         text: 'Agregar',
         handler: data => {
           if (data.hora && data.descripcion) {
-            tareas.value.push({
-              hora: data.hora,
-              descripcion: data.descripcion,
-              completado: false
-            });
+            taskStore.agregarTarea(data.hora, data.descripcion);
           }
         }
       }
@@ -119,10 +113,6 @@ const mostrarAlertaAgregar = async () => {
   });
 
   await alert.present();
-};
-
-const eliminarTarea = (index: number) => {
-  tareas.value.splice(index, 1);
 };
 </script>
 
@@ -145,7 +135,8 @@ ion-content {
 }
 
 .nav-links ion-button {
-  color: white;
+  --color: white !important;
+  color: white !important;
   font-weight: bold;
   font-size: 16px;
   transition: all 0.3s ease;

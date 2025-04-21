@@ -1,3 +1,6 @@
+vue
+Copiar
+Editar
 <template>
   <ion-page>
     <ion-header>
@@ -30,33 +33,28 @@
 
       <!-- Horarios y tareas -->
       <div class="tareas">
-        <div v-for="(tarea, index) in tareas" :key="index" class="tarea-item">
+        <div v-for="(tarea, index) in taskStore.tareas" :key="index" class="tarea-item">
           <div class="hora">{{ tarea.hora }}</div>
           <div class="descripcion">{{ tarea.descripcion }}</div>
           <ion-toggle v-model="tarea.completado" color="success" />
         </div>
-        <ion-button expand="block" color="medium">Agregar</ion-button>
       </div>
 
       <!-- Gráfico de resumen -->
       <div class="resumen">
         <h3>Resumen</h3>
-        <div class="barras">
-          <div v-for="(valor, index) in resumen" :key="index" class="barra-contenedor">
-            <div class="barra" :style="{ height: valor + '%' }"></div>
-          </div>
-        </div>
+        <ResumenChart />
       </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
+import ResumenChart from '@/components/ResumenChart.vue';
 import {
   IonPage,
   IonHeader,
   IonToolbar,
-  IonTitle,
   IonButtons,
   IonButton,
   IonContent,
@@ -69,20 +67,16 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { ref } from 'vue';
 
+// 📦 Importar la store
+import { useTaskStore } from '@/stores/taskStore';
+const taskStore = useTaskStore();
+
 const router = useRouter();
 
 const logout = async () => {
   await signOut(auth);
   router.push('/');
 };
-
-const tareas = [
-  { hora: '6:00 a.m', descripcion: 'Despertar', completado: true },
-  { hora: '7:00 a.m', descripcion: 'Desayuno', completado: false },
-  { hora: '8:00 a.m', descripcion: 'Gym', completado: false }
-];
-
-const resumen = [100, 60, 30];
 
 const fecha = new Date();
 const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -93,9 +87,7 @@ const dia = fecha.getDate();
 const mes = meses[fecha.getMonth()];
 const anio = fecha.getFullYear();
 
-// Rutas y estado activo
 const rutaActual = ref(router.currentRoute.value.path);
-
 router.afterEach((to) => {
   rutaActual.value = to.path;
 });
@@ -114,9 +106,8 @@ const navLinks = [
   color: #ffffff;
 }
 
-/* NAV PERSONALIZADA */
 .nav-links ion-button {
-  color: white;
+  --color: white !important;
   font-weight: bold;
   font-size: 16px;
   transition: all 0.3s ease;
@@ -128,7 +119,6 @@ const navLinks = [
   border: 2px solid rgba(255, 255, 255, 0.4);
 }
 
-/* Calendario */
 .calendario-hoy {
   display: flex;
   align-items: center;
@@ -150,7 +140,6 @@ const navLinks = [
   font-weight: bold;
 }
 
-/* Tareas */
 .tareas {
   padding: 15px;
   border-radius: 12px;
@@ -165,25 +154,18 @@ const navLinks = [
   margin-bottom: 10px;
   border-bottom: 1px solid #555;
   padding-bottom: 5px;
+  color: white !important;
 }
 
 .hora {
   width: 80px;
   font-weight: bold;
-  color: white !important;
 }
 
 .descripcion {
   flex-grow: 1;
-  color: white !important;
 }
 
-.tarea-item {
-  color: white !important;
-}
-
-
-/* Resumen */
 .resumen {
   padding: 15px;
   border-radius: 12px;
@@ -194,27 +176,5 @@ const navLinks = [
   margin-bottom: 10px;
   color: #fff;
 }
-
-.barras {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  height: 150px;
-  margin-top: 10px;
-}
-
-.barra-contenedor {
-  width: 20px;
-  background: #555;
-  height: 100%;
-  border-radius: 4px;
-  display: flex;
-  align-items: flex-end;
-}
-
-.barra {
-  background-color: #4caf50;
-  width: 100%;
-  border-radius: 4px 4px 0 0;
-}
 </style>
+
