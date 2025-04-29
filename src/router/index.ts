@@ -8,10 +8,10 @@ import RegisterPage from '../views/RegisterPage.vue';
 import DashboardPage from '../views/DashboardPage.vue';
 import HomePage from '../views/HomePage.vue';
 import TareasPage from '../views/TareasPage.vue';
-import ResumenPage from '../views/ResumenPage.vue';
+import ResumenPage from '../views/ResumenPage.vue'; // 👈 Aquí sigue ResumenPage.vue
 import ConfiguracionPage from '../views/ConfiguracionPage.vue';
 import Recover from '@/views/Recover.vue';
-import PerfilPage from '../views/Perfil.vue'; // 👈 Importamos la nueva vista
+import PerfilPage from '../views/Perfil.vue'; // 👈 Importamos la vista de perfil
 
 // Definición de rutas
 const routes = [
@@ -23,9 +23,9 @@ const routes = [
   { path: '/dashboard', component: DashboardPage, meta: { requiresAuth: true } },
   { path: '/home', component: HomePage, meta: { requiresAuth: true } },
   { path: '/tareas', component: TareasPage, meta: { requiresAuth: true } },
-  { path: '/resumen', component: ResumenPage, meta: { requiresAuth: true } },
+  { path: '/resumen', component: ResumenPage, meta: { requiresAuth: true } }, // 👈 Aquí lo dejamos en /resumen
   { path: '/configuration', component: ConfiguracionPage, meta: { requiresAuth: true } },
-  { path: '/perfil', component: PerfilPage, meta: { requiresAuth: true } }, // ✅ Ruta del perfil
+  { path: '/perfil', component: PerfilPage, meta: { requiresAuth: true } },
 ];
 
 // Crear el router
@@ -38,13 +38,11 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
 
-  // Si la ruta requiere autenticación
   if (requiresAuth) {
     const user = auth.currentUser;
 
-    // Espera por el estado de autenticación si es necesario
     if (user) {
-      next(); // Usuario autenticado
+      next(); 
     } else {
       onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -60,3 +58,4 @@ router.beforeEach(async (to, from, next) => {
 });
 
 export default router;
+
