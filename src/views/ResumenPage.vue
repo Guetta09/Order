@@ -124,7 +124,7 @@ onMounted(async () => {
 
 <style scoped>
 .fondo-oscuro {
-  --background: #000000;
+  --background: #ffffff;
   color: #af0707;
 }
 
