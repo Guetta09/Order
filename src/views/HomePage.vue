@@ -1,6 +1,4 @@
-vue
-Copiar
-Editar
+
 <template>
   <ion-page>
     <ion-header>
