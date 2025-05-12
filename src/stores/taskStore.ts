@@ -1,39 +1,59 @@
+// src/stores/taskStore.ts
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 export interface Tarea {
+  id: string;
   hora: string;
   descripcion: string;
-  fecha: string; // Nueva propiedad
+  fecha: string;
   completado: boolean;
 }
 
 export const useTaskStore = defineStore('taskStore', () => {
-  const tareas = ref<Tarea[]>([
-    { hora: '6:00', descripcion: 'Despertar', fecha: '2025-05-05', completado: true },
-    { hora: '7:00', descripcion: 'Desayuno', fecha: '2025-05-05', completado: false },
-    { hora: '8:00', descripcion: 'Ir a clase', fecha: '2025-05-05', completado: false },
-  ]);
+  const tareas = ref<Tarea[]>([]);
+
+  // 🔁 Cargar tareas desde localStorage al inicio
+  const cargarTareas = () => {
+    const data = localStorage.getItem('tareas');
+    if (data) {
+      tareas.value = JSON.parse(data);
+    }
+  };
+
+  // 💾 Guardar automáticamente en localStorage cada vez que cambian las tareas
+  watch(tareas, (nuevas) => {
+    localStorage.setItem('tareas', JSON.stringify(nuevas));
+  }, { deep: true });
 
   const agregarTarea = (hora: string, descripcion: string, fecha: string) => {
-    tareas.value.push({ hora, descripcion, fecha, completado: false });
+    const nueva: Tarea = {
+      id: crypto.randomUUID(),
+      hora,
+      descripcion,
+      fecha,
+      completado: false
+    };
+    tareas.value.push(nueva);
   };
 
-  const eliminarTarea = (index: number) => {
-    tareas.value.splice(index, 1);
+  const eliminarTarea = (id: string) => {
+    tareas.value = tareas.value.filter(t => t.id !== id);
   };
 
-  // Computed para ordenar por fecha y hora
+  const toggleCompletado = (id: string, estado: boolean) => {
+    const tarea = tareas.value.find(t => t.id === id);
+    if (tarea) tarea.completado = estado;
+  };
+
   const tareasOrdenadas = computed(() => {
     return tareas.value.slice().sort((a, b) => {
-      const fechaHoraA = new Date(`${a.fecha}T${a.hora}`);
-      const fechaHoraB = new Date(`${b.fecha}T${b.hora}`);
-      return fechaHoraA.getTime() - fechaHoraB.getTime();
+      const fechaA = new Date(`${a.fecha}T${a.hora}`);
+      const fechaB = new Date(`${b.fecha}T${b.hora}`);
+      return fechaA.getTime() - fechaB.getTime();
     });
   });
 
-  
-  // Progreso gráfico (tareas completas %)
   const progreso = computed(() => {
     const total = tareas.value.length;
     const completadas = tareas.value.filter(t => t.completado).length;
@@ -43,8 +63,10 @@ export const useTaskStore = defineStore('taskStore', () => {
   return {
     tareas,
     tareasOrdenadas,
+    progreso,
+    cargarTareas,
     agregarTarea,
     eliminarTarea,
-    progreso
+    toggleCompletado
   };
 });

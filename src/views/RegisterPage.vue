@@ -45,26 +45,30 @@ const register = async () => {
     const user = userCredential.user
 
     // Guardar datos en Firestore
-    await setDoc(doc(db, 'usuarios', user.uid), {
+    const userData = {
       uid: user.uid,
       nombre: firstName.value,
       apellido: lastName.value,
       email: user.email,
       telefono: phone.value || '',
       creadoEn: new Date()
-    })
+    }
 
-    alert('Registro exitoso. Ahora puedes iniciar sesión.')
-    router.push('/') // O redirige directamente al dashboard si prefieres
+    await setDoc(doc(db, 'usuarios', user.uid), userData)
+
+    console.log('✅ Usuario registrado:', userData) // 👈 Para verificar en consola
+    alert('🎉 Registro exitoso. Ahora puedes iniciar sesión.')
+    router.push('/') // Redirigir al login
   } catch (error: any) {
+    console.error('❌ Error al registrar:', error)
     if (error.code === 'auth/email-already-in-use') {
       alert('Este correo ya está registrado.')
     } else {
       alert('Error al registrar: ' + error.message)
     }
-    console.error(error)
   }
 }
+
 </script>
 
 <style scoped>

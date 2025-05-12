@@ -1,4 +1,3 @@
-
 <template>
   <ion-page>
     <ion-header>
@@ -7,7 +6,7 @@
           <ion-button
             v-for="(link, index) in navLinks"
             :key="index"
-            :router-link="link.route"
+            @click="navegar(link.route)"
             :class="{ activo: rutaActual === link.route }"
             fill="clear"
           >
@@ -31,7 +30,11 @@
 
       <!-- Horarios y tareas -->
       <div class="tareas">
-        <div v-for="(tarea, index) in taskStore.tareas" :key="index" class="tarea-item">
+        <div
+          v-for="(tarea, index) in taskStore.tareas"
+          :key="index"
+          class="tarea-item"
+        >
           <div class="hora">{{ tarea.hora }}</div>
           <div class="descripcion">{{ tarea.descripcion }}</div>
           <ion-toggle v-model="tarea.completado" color="success" />
@@ -65,7 +68,6 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { ref } from 'vue';
 
-// 📦 Importar la store
 import { useTaskStore } from '@/stores/taskStore';
 const taskStore = useTaskStore();
 
@@ -74,6 +76,13 @@ const router = useRouter();
 const logout = async () => {
   await signOut(auth);
   router.push('/');
+};
+
+const navegar = (ruta: string) => {
+  router.push(ruta);
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
 };
 
 const fecha = new Date();
@@ -93,8 +102,7 @@ router.afterEach((to) => {
 const navLinks = [
   { label: 'Home', route: '/home' },
   { label: 'Tareas', route: '/tareas' },
-  { label: 'Resumen', route: '/resumen' },
-  { label: 'Configuración', route: '/configuracion' }
+  { label: 'Resumen', route: '/resumen' }
 ];
 </script>
 
@@ -175,4 +183,3 @@ const navLinks = [
   color: #fff;
 }
 </style>
-

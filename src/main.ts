@@ -29,6 +29,14 @@ app.use(IonicVue);
 app.use(router);
 app.use(pinia); // 👉 NUEVO
 
+router.afterEach(() => {
+  // Quitar foco de cualquier elemento enfocado
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+});
+
+
 // Montar app después de que el router esté listo
 router.isReady().then(() => {
   app.mount('#app');

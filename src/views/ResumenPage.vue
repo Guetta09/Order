@@ -9,132 +9,91 @@
     <ion-content class="ion-padding fondo-oscuro" :fullscreen="true">
       <h1 style="text-align: center; color: white;">Tu efectividad semanal</h1>
 
-      <!-- Gráfico de efectividad -->
       <div class="grafico-container">
-        <canvas id="graficoEfectividad"></canvas>
+        <Bar :data="chartData" :options="chartOptions" />
       </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-} from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/vue';
+import { Bar } from 'vue-chartjs';
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
+import { useTaskStore } from '@/stores/taskStore';
+import { computed } from 'vue';
 
-import { onMounted } from 'vue';
-import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../firebase'; // Asegúrate de tener tu instancia de Firestore lista
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
-// Registrar componentes de Chart.js
-Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+const taskStore = useTaskStore();
 
-// Crear el gráfico una vez que la página esté montada
-onMounted(async () => {
-  const tareasPorDia = {
-    lunes: 0,
-    martes: 0,
-    miércoles: 0,
-    jueves: 0,
-    viernes: 0,
-    sábado: 0,
-    domingo: 0,
+const tareasPorDia = computed(() => {
+  const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  const conteo: Record<string, number> = {
+    lunes: 0, martes: 0, miércoles: 0, jueves: 0, viernes: 0, sábado: 0, domingo: 0
   };
 
-  const now = new Date();
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Lunes de la semana
-
-  // Traer tareas completadas de Firestore
-  const tareasRef = collection(db, 'tareas');
-  const q = query(tareasRef, where('completed', '==', true));
-  const snapshot = await getDocs(q);
-
-  snapshot.forEach(doc => {
-    const tarea = doc.data();
-    const completedAt = tarea.completedAt?.toDate ? tarea.completedAt.toDate() : new Date(tarea.completedAt);
-
-    if (completedAt >= startOfWeek) {
-      const dayIndex = completedAt.getDay();
-      const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-      const diaNombre = dias[dayIndex] as keyof typeof tareasPorDia;
-      if (tareasPorDia[diaNombre] !== undefined) {
-        tareasPorDia[diaNombre]++;
-      }
+  for (const tarea of taskStore.tareas) {
+    if (tarea.completado) {
+      const fecha = new Date(tarea.fecha);
+      const diaNombre = dias[fecha.getDay()];
+      conteo[diaNombre]++;
     }
-  });
+  }
 
-  // Definimos cuántas tareas posibles máximas hay por día (puedes ajustar)
-  const maxTareasDia = 6;
-
-  const ctx = document.getElementById('graficoEfectividad') as HTMLCanvasElement;
-
-  const data = {
-    labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-    datasets: [{
-      label: '% de efectividad',
-      data: [
-        (tareasPorDia.lunes / maxTareasDia) * 100,
-        (tareasPorDia.martes / maxTareasDia) * 100,
-        (tareasPorDia.miércoles / maxTareasDia) * 100,
-        (tareasPorDia.jueves / maxTareasDia) * 100,
-        (tareasPorDia.viernes / maxTareasDia) * 100,
-        (tareasPorDia.sábado / maxTareasDia) * 100,
-        (tareasPorDia.domingo / maxTareasDia) * 100,
-      ],
-      backgroundColor: '#4caf50',
-    }]
-  };
-
-  new Chart(ctx, {
-    type: 'bar',
-    data: data,
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          display: false,
-        },
-        tooltip: {
-          callbacks: {
-            label: (context) => `${context.parsed.y.toFixed(1)}%`
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 100,
-          title: {
-            display: true,
-            text: 'Porcentaje de tareas completadas'
-          }
-        }
-      }
-    }
-  });
+  return conteo;
 });
-</script>
 
+const chartData = computed(() => ({
+  labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+  datasets: [
+    {
+      label: '% de efectividad',
+      backgroundColor: '#4caf50',
+      data: [
+        tareasPorDia.value.lunes * 10,
+        tareasPorDia.value.martes * 10,
+        tareasPorDia.value.miércoles * 10,
+        tareasPorDia.value.jueves * 10,
+        tareasPorDia.value.viernes * 10,
+        tareasPorDia.value.sábado * 10,
+        tareasPorDia.value.domingo * 10,
+      ],
+      borderRadius: 8
+    }
+  ]
+}));
+
+const chartOptions = {
+  responsive: true,
+  scales: {
+    y: {
+      beginAtZero: true,
+      max: 100,
+      title: {
+        display: true,
+        text: 'Porcentaje'
+      }
+    }
+  },
+  plugins: {
+    legend: {
+      display: false
+    }
+  }
+};
+</script>
 
 <style scoped>
 .fondo-oscuro {
-  --background: #ffffff;
-  color: #af0707;
+  --background: #2e2e2e;
+  color: white;
 }
 
 .grafico-container {
   margin-top: 30px;
-  background: rgb(0, 0, 0);
+  background: #000;
   border-radius: 8px;
   padding: 16px;
 }
 </style>
-
-
-  
