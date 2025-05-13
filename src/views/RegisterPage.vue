@@ -27,9 +27,8 @@
 import { IonPage, IonContent } from '@ionic/vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { auth, db } from '../firebase'
+import { auth } from '../firebase'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
-import { doc, setDoc } from 'firebase/firestore'
 
 const router = useRouter()
 
@@ -44,21 +43,15 @@ const register = async () => {
     const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value)
     const user = userCredential.user
 
-    // Guardar datos en Firestore
-    const userData = {
-      uid: user.uid,
+    // Guardar los datos del perfil en localStorage
+    localStorage.setItem('userProfile', JSON.stringify({
       nombre: firstName.value,
       apellido: lastName.value,
-      email: user.email,
-      telefono: phone.value || '',
-      creadoEn: new Date()
-    }
+      telefono: phone.value || ''
+    }))
 
-    await setDoc(doc(db, 'usuarios', user.uid), userData)
-
-    console.log('✅ Usuario registrado:', userData) // 👈 Para verificar en consola
-    alert('🎉 Registro exitoso. Ahora puedes iniciar sesión.')
-    router.push('/') // Redirigir al login
+    alert('🎉 Registro exitoso. Bienvenido(a), ' + firstName.value + '!')
+    router.push('/home') // Redirigir a home directamente
   } catch (error: any) {
     console.error('❌ Error al registrar:', error)
     if (error.code === 'auth/email-already-in-use') {
@@ -68,7 +61,6 @@ const register = async () => {
     }
   }
 }
-
 </script>
 
 <style scoped>
