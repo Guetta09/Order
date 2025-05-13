@@ -104,25 +104,51 @@ const chartOptions = {
   plugins: {
     legend: {
       display: false
-  responsive: true,
-  scales: {
-    y: {
-      beginAtZero: true,
-      max: 100,
-      title: {
-        display: true,
-        text: 'Porcentaje'
-      }
-    }
-  },
-  plugins: {
-    legend: {
-      display: false
     }
   }
 };
+// Debugging: Ensure the chartOptions object is correctly structured
+console.log('chartOptions:', chartOptions);
 
 const pieChartData = computed(() => {
+  const completadas: Record<string, number> = {
+    lunes: 0, martes: 0, miércoles: 0, jueves: 0, viernes: 0, sábado: 0, domingo: 0
+  };
+  const totales: Record<string, number> = {
+    lunes: 0, martes: 0, miércoles: 0, jueves: 0, viernes: 0, sábado: 0, domingo: 0
+  };
+
+  for (const tarea of taskStore.tareas) {
+    const fecha = new Date(tarea.fecha);
+    const diaNombre = dias[fecha.getDay()];
+    totales[diaNombre]++;
+    if (tarea.completado) {
+      completadas[diaNombre]++;
+    }
+  }
+
+  const porcentajes = dias.map(dia => {
+    const diaKey = dia as keyof typeof totales;
+    return totales[diaKey] === 0 ? 0 : Math.round((completadas[diaKey] / totales[diaKey]) * 100);
+  });
+
+  return {
+    labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+    datasets: [{
+      label: 'Tareas completadas (%)',
+      backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#9c27b0', '#00bcd4', '#ffc107', '#f44336'],
+      data: porcentajes
+    }]
+  };
+});
+
+// Debugging: Ensure the computed properties are returning the expected data
+console.log('tareasPorDia:', tareasPorDia.value);
+console.log('chartData:', chartData.value);
+console.log('pieChartData:', pieChartData.value);
+
+// Debugging: Ensure the taskStore is providing the correct data
+console.log('taskStore.tareas:', taskStore.tareas);
   const completadas: Record<string, number> = {
     lunes: 0, martes: 0, miércoles: 0, jueves: 0, viernes: 0, sábado: 0, domingo: 0
   };
