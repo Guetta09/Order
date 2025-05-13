@@ -97,18 +97,8 @@ const chartOptions = {
   padding: 16px;
 }
 </style>
-<template>
-  <div class="grafico-container">
-    <h2>Efectividad Diaria (Barras)</h2>
-    <Bar :data="chartData" :options="chartOptions" />
-  </div>
-
-  <div class="grafico-container">
-    <h2>Porcentaje de Tareas Completadas (Pastel)</h2>
-    <Pie :data="pieChartData" :options="pieChartOptions" />
-  </div>
-</template>
-
+<script setup>
+</script>
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Bar, Pie } from 'vue-chartjs';
