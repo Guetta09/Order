@@ -10,11 +10,18 @@
       <h1 style="text-align: center; color: white;">Tu efectividad semanal</h1>
 
       <div class="grafico-container">
+        <h2>Efectividad Diaria (Barras)</h2>
         <Bar :data="chartData" :options="chartOptions" />
+      </div>
+
+      <div class="grafico-container">
+        <h2>Porcentaje de Tareas Completadas (Pastel)</h2>
+        <Pie :data="pieChartData" :options="pieChartOptions" />
       </div>
     </ion-content>
   </ion-page>
 </template>
+
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/vue';
@@ -97,8 +104,6 @@ const chartOptions = {
   padding: 16px;
 }
 </style>
-<script setup>
-</script>
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Bar, Pie } from 'vue-chartjs';
@@ -233,12 +238,3 @@ const pieChartOptions = {
 };
 </script>
 
-<style scoped>
-.grafico-container {
-  margin-top: 30px;
-  background: #1e1e1e;
-  border-radius: 8px;
-  padding: 16px;
-  color: white;
-}
-</style>
