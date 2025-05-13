@@ -134,6 +134,7 @@ const navLinks = [
   border-radius: 10px;
   color: #ffffff;
   background: transparent;
+  cursor: pointer; /* Add pointer cursor for better UX */
 }
 
 .icono-calendario {
