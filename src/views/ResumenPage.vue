@@ -25,87 +25,6 @@
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/vue';
-import { Bar } from 'vue-chartjs';
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
-import { useTaskStore } from '@/stores/taskStore';
-import { computed } from 'vue';
-
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
-
-const taskStore = useTaskStore();
-
-const tareasPorDia = computed(() => {
-  const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-  const conteo: Record<string, number> = {
-    lunes: 0, martes: 0, miércoles: 0, jueves: 0, viernes: 0, sábado: 0, domingo: 0
-  };
-
-  for (const tarea of taskStore.tareas) {
-    if (tarea.completado) {
-      const fecha = new Date(tarea.fecha);
-      const diaNombre = dias[fecha.getDay()];
-      conteo[diaNombre]++;
-    }
-  }
-
-  return conteo;
-});
-
-const chartData = computed(() => ({
-  labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-  datasets: [
-    {
-      label: '% de efectividad',
-      backgroundColor: '#4caf50',
-      data: [
-        tareasPorDia.value.lunes * 10,
-        tareasPorDia.value.martes * 10,
-        tareasPorDia.value.miércoles * 10,
-        tareasPorDia.value.jueves * 10,
-        tareasPorDia.value.viernes * 10,
-        tareasPorDia.value.sábado * 10,
-        tareasPorDia.value.domingo * 10,
-      ],
-      borderRadius: 8
-    }
-  ]
-}));
-
-const chartOptions = {
-  responsive: true,
-  scales: {
-    y: {
-      beginAtZero: true,
-      max: 100,
-      title: {
-        display: true,
-        text: 'Porcentaje'
-      }
-    }
-  },
-  plugins: {
-    legend: {
-      display: false
-    }
-  }
-};
-</script>
-
-<style scoped>
-.fondo-oscuro {
-  --background: #2e2e2e;
-  color: white;
-}
-
-.grafico-container {
-  margin-top: 30px;
-  background: #000;
-  border-radius: 8px;
-  padding: 16px;
-}
-</style>
-<script setup lang="ts">
-import { computed } from 'vue';
 import { Bar, Pie } from 'vue-chartjs';
 import {
   Chart as ChartJS,
@@ -117,8 +36,8 @@ import {
   CategoryScale,
   LinearScale
 } from 'chart.js';
-
-import { useTaskStore } from '@/stores/taskStore'; // Asegúrate de que la ruta sea correcta
+import { useTaskStore } from '@/stores/taskStore';
+import { computed } from 'vue';
 
 ChartJS.register(
   Title,
@@ -171,6 +90,20 @@ const chartData = computed(() => ({
 }));
 
 const chartOptions = {
+  responsive: true,
+  scales: {
+    y: {
+      beginAtZero: true,
+      max: 100,
+      title: {
+        display: true,
+        text: 'Porcentaje'
+      }
+    }
+  },
+  plugins: {
+    legend: {
+      display: false
   responsive: true,
   scales: {
     y: {
