@@ -2,63 +2,171 @@
   <ion-page>
     <ion-header>
       <ion-toolbar style="--background: #800000;">
+        <ion-buttons slot="start">
+          <ion-button @click="goBack" color="light">
+            <img src="\src\components\icons\atras.png" alt="Atrás" style="height: 20px; margin-right: 8px;" />
+            Atrás
+          </ion-button>
+        </ion-buttons>
         <ion-title style="color: white; text-align: center;">Resumen de Estadísticas</ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content class="ion-padding fondo-oscuro" :fullscreen="true">
-      <h1 style="text-align: center; color: white;">Tu efectividad semanal</h1>
-
+      <!-- Gráfico de pastel -->
       <div class="grafico-container">
-        <h2>Efectividad Diaria (Barras)</h2>
-        <Bar :data="chartData" :options="chartOptions" />
+        <h3 style="color: white; text-align: center;">Tareas Completadas por Día</h3>
+        <Pie :data="pieChartData" :options="pieChartOptions" />
       </div>
 
+      <!-- Selector de semana tipo carrusel -->
+      <div class="selector-semana">
+        <ion-button @click="abrirSelectorSemana" expand="block" color="tertiary">
+          Semana del {{ semanaFormateada }}
+        </ion-button>
+      </div>
+
+      <!-- Gráfico de barras -->
       <div class="grafico-container">
-        <h2>Porcentaje de Tareas Completadas (Pastel)</h2>
-        <Pie :data="pieChartData" :options="pieChartOptions" />
+        <h3 style="color: white; text-align: center;">Efectividad Semanal</h3>
+        <Bar :data="barChartData" :options="barChartOptions" />
       </div>
     </ion-content>
   </ion-page>
 </template>
 
-
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/vue';
-import { Bar, Pie } from 'vue-chartjs';
+import {
+  IonPage,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonButtons,
+  IonButton,
+  pickerController
+} from '@ionic/vue';
+import { Pie, Bar } from 'vue-chartjs';
 import {
   Chart as ChartJS,
   Title,
   Tooltip,
   Legend,
-  BarElement,
   ArcElement,
+  BarElement,
   CategoryScale,
   LinearScale
 } from 'chart.js';
+import { computed, ref } from 'vue';
 import { useTaskStore } from '@/stores/taskStore';
-import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 
 ChartJS.register(
-  Title,
-  Tooltip,
-  Legend,
-  BarElement,
-  ArcElement,
-  CategoryScale,
-  LinearScale
+  Title, Tooltip, Legend, ArcElement, BarElement, CategoryScale, LinearScale
 );
 
+const router = useRouter();
 const taskStore = useTaskStore();
-
 const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 
+// Semana actual
+const hoy = new Date();
+const semanas = generarSemanasDesde(hoy, 8);
+const semanaSeleccionada = ref(semanas[0]);
+
+function generarSemanasDesde(actual: Date, cantidad: number) {
+  const lista = [];
+  const hoy = new Date(actual);
+
+  // Asegurar que se tome la semana actual correctamente
+  const finActual = new Date(hoy);
+  const inicioActual = new Date(hoy);
+
+  const diaSemana = hoy.getDay(); // 0 (domingo) - 6 (sábado)
+  const diferenciaLunes = diaSemana === 0 ? -6 : 1 - diaSemana;
+
+  inicioActual.setDate(hoy.getDate() + diferenciaLunes);
+  finActual.setDate(inicioActual.getDate() + 6);
+
+  lista.push({ inicio: new Date(inicioActual), fin: new Date(finActual) });
+
+  // Agregar semanas anteriores
+  for (let i = 1; i < cantidad; i++) {
+    const inicio = new Date(inicioActual);
+    const fin = new Date(finActual);
+    inicio.setDate(inicio.getDate() - 7 * i);
+    fin.setDate(fin.getDate() - 7 * i);
+    lista.push({ inicio, fin });
+  }
+
+  return lista;
+}
+
+
+const semanaFormateada = computed(() => {
+  const sem = semanaSeleccionada.value;
+  return `${sem.inicio.toLocaleDateString()} al ${sem.fin.toLocaleDateString()}`;
+});
+
+const abrirSelectorSemana = async () => {
+  const picker = await pickerController.create({
+    columns: [{
+      name: 'semanas',
+      options: semanas.map((s, index) => ({
+        text: `${s.inicio.toLocaleDateString()} - ${s.fin.toLocaleDateString()}`,
+        value: index
+      }))
+    }],
+    buttons: [
+      { text: 'Cancelar', role: 'cancel' },
+      {
+        text: 'Aceptar',
+        handler: (selected: { semanas: { value: number } }) => {
+          semanaSeleccionada.value = semanas[selected.semanas.value];
+        }
+      }
+    ]
+  });
+  await picker.present();
+};
+
+const tareasFiltradasSemana = computed(() => {
+  return taskStore.tareas.filter(t => {
+    const fecha = new Date(t.fecha);
+    return fecha >= semanaSeleccionada.value.inicio && fecha <= semanaSeleccionada.value.fin;
+  });
+});
+
+// Gráfico de pastel
+const pieChartData = computed(() => {
+  const completadas = tareasFiltradasSemana.value.filter(t => t.completado).length;
+  const pendientes = tareasFiltradasSemana.value.length - completadas;
+
+  return {
+    labels: ['Completadas', 'Pendientes'],
+    datasets: [{
+      backgroundColor: ['#4caf50', '#f44336'],
+      data: [completadas, pendientes]
+    }]
+  };
+});
+
+const pieChartOptions = {
+  responsive: true,
+  plugins: {
+    legend: {
+      position: 'bottom' as const
+    }
+  }
+};
+
+// Gráfico de barras
 const tareasPorDia = computed(() => {
   const conteo: Record<string, number> = {
     lunes: 0, martes: 0, miércoles: 0, jueves: 0, viernes: 0, sábado: 0, domingo: 0
   };
 
-  for (const tarea of taskStore.tareas) {
+  for (const tarea of tareasFiltradasSemana.value) {
     if (tarea.completado) {
       const fecha = new Date(tarea.fecha);
       const diaNombre = dias[fecha.getDay()];
@@ -67,37 +175,31 @@ const tareasPorDia = computed(() => {
   }
 
   return conteo;
+});
 
-const chartData = computed(() => ({
+const barChartData = computed(() => ({
   labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-  datasets: [
-    {
-      label: '% de efectividad',
-      backgroundColor: '#4caf50',
-      data: [
-        tareasPorDia.value.lunes * 10,
-        tareasPorDia.value.martes * 10,
-        tareasPorDia.value.miércoles * 10,
-        tareasPorDia.value.jueves * 10,
-        tareasPorDia.value.viernes * 10,
-        tareasPorDia.value.sábado * 10,
-        tareasPorDia.value.domingo * 10,
-      ],
-      borderRadius: 8
-    }
-  ]
+  datasets: [{
+    label: 'Efectividad diaria (%)',
+    backgroundColor: '#2196f3',
+    data: [
+      tareasPorDia.value.lunes * 10,
+      tareasPorDia.value.martes * 10,
+      tareasPorDia.value.miércoles * 10,
+      tareasPorDia.value.jueves * 10,
+      tareasPorDia.value.viernes * 10,
+      tareasPorDia.value.sábado * 10,
+      tareasPorDia.value.domingo * 10
+    ]
+  }]
 }));
 
-const chartOptions = {
+const barChartOptions = {
   responsive: true,
   scales: {
     y: {
       beginAtZero: true,
-      max: 100,
-      title: {
-        display: true,
-        text: 'Porcentaje'
-      }
+      max: 100
     }
   },
   plugins: {
@@ -106,67 +208,25 @@ const chartOptions = {
     }
   }
 };
-// Debugging: Ensure the chartOptions object is correctly structured
-console.log('chartOptions:', chartOptions);
 
-const pieChartData = computed(() => {
-  const completadas: Record<string, number> = {
-    lunes: 0, martes: 0, miércoles: 0, jueves: 0, viernes: 0, sábado: 0, domingo: 0
-  };
-  const totales: Record<string, number> = {
-    lunes: 0, martes: 0, miércoles: 0, jueves: 0, viernes: 0, sábado: 0, domingo: 0
-  };
-
-  // Debugging: Ensure the 'totales' object is initialized correctly
-  console.log('Initialized totales:', totales);
-
-  for (const tarea of taskStore.tareas) {
-    const fecha = new Date(tarea.fecha);
-    const diaNombre = dias[fecha.getDay()];
-    totales[diaNombre]++;
-    if (tarea.completado) {
-      completadas[diaNombre]++;
-    }
-  }
-
-  const porcentajes = dias.map(dia => {
-    const diaKey = dia as keyof typeof totales;
-    return totales[diaKey] === 0 ? 0 : Math.round((completadas[diaKey] / totales[diaKey]) * 100);
-  });
-
-  return {
-    labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-    datasets: [{
-      label: 'Tareas completadas (%)',
-      backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#9c27b0', '#00bcd4', '#ffc107', '#f44336'],
-      data: porcentajes
-    }]
-  };
-});
-
-// Debugging: Ensure the computed properties are returning the expected data
-console.log('tareasPorDia:', tareasPorDia.value);
-console.log('chartData:', chartData.value);
-console.log('pieChartData:', pieChartData.value);
-
-// Debugging: Ensure the taskStore is providing the correct data
-console.log('taskStore.tareas:', taskStore.tareas);
-});
-
-const pieChartOptions = {
-  responsive: true,
-  plugins: {
-    legend: {
-      position: 'bottom'
-    },
-    tooltip: {
-      callbacks: {
-        label: function (context: any) {
-          return `${context.label}: ${context.parsed}%`;
-        }
-      }
-    }
-  }
-};
+const goBack = () => router.push('/home');
 </script>
 
+<style scoped>
+.fondo-oscuro {
+  --background: #2e2e2e;
+  color: white;
+}
+
+.grafico-container {
+  margin-top: 30px;
+  background: #000;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.selector-semana {
+  margin: 20px 0;
+  text-align: center;
+}
+</style>

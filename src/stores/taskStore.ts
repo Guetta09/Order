@@ -70,7 +70,7 @@ export const useTaskStore = defineStore('taskStore', () => {
     toggleCompletado
   };
 });
-// pinia.config.ts
+// pinia.config.ts 
 import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 

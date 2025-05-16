@@ -2,22 +2,29 @@
   <ion-page>
     <ion-header>
       <ion-toolbar class="toolbar-custom">
-        <ion-title>Tareas</ion-title>
+        <ion-buttons slot="start">
+          <ion-button @click="goBack" fill="clear">
+            <img src="@/components/icons/atras.png" alt="atrás" style="width: 20px; height: 20px; margin-right: 6px" />
+            Atrás
+          </ion-button>
+        </ion-buttons>
+        <ion-title style="font-size: 18px;">Tareas</ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content class="fondo-oscuro ion-padding">
+      <!-- FAB botón agregar -->
       <ion-fab slot="fixed" vertical="bottom" horizontal="center" style="bottom: 80px;">
         <ion-fab-button @click="mostrarModal = true">
           <ion-icon :icon="add" />
         </ion-fab-button>
       </ion-fab>
 
-      <!-- Modal para agregar tareas -->
+      <!-- Modal agregar tarea -->
       <ion-modal :is-open="mostrarModal" @didDismiss="mostrarModal = false">
         <ion-header>
           <ion-toolbar class="toolbar-custom">
-            <ion-title>Agregar Tarea</ion-title>
+            <ion-title style="font-size: 18px;">Agregar Tarea</ion-title>
             <ion-buttons slot="end">
               <ion-button @click="mostrarModal = false" fill="clear">
                 <ion-icon :icon="close" />
@@ -27,18 +34,18 @@
         </ion-header>
         <ion-content class="ion-padding fondo-oscuro">
           <ion-item>
-            <ion-label position="floating">Nombre</ion-label>
-            <ion-input v-model="nuevaDescripcion" />
+            <ion-label position="floating" style="font-size: 14px;">Nombre</ion-label>
+            <ion-input v-model="nuevaDescripcion" style="font-size: 14px;" />
           </ion-item>
           <ion-item>
-            <ion-label position="floating">Hora</ion-label>
-            <ion-datetime v-model="hora" presentation="time" hour-cycle="h23" />
+            <ion-label position="floating" style="font-size: 14px;">Hora</ion-label>
+            <ion-datetime v-model="hora" presentation="time" hour-cycle="h23" style="font-size: 14px;" />
           </ion-item>
           <ion-item>
-            <ion-label position="floating">Fecha</ion-label>
-            <ion-datetime v-model="fecha" presentation="date" />
+            <ion-label position="floating" style="font-size: 14px;">Fecha</ion-label>
+            <ion-datetime v-model="fecha" presentation="date" style="font-size: 14px;" />
           </ion-item>
-          <ion-button expand="block" @click="agregarTarea">Guardar</ion-button>
+          <ion-button expand="block" @click="agregarTarea" style="margin-top: 14px;">Guardar</ion-button>
         </ion-content>
       </ion-modal>
 
@@ -46,11 +53,11 @@
       <ion-list>
         <ion-item v-for="tarea in taskStore.tareasOrdenadas" :key="tarea.id">
           <ion-label>
-            <h2>{{ tarea.descripcion }}</h2>
-            <p>{{ formatearFecha(tarea.fecha) }} - {{ tarea.hora }}</p>
+            <h2 style="font-size: 15px;">{{ tarea.descripcion }}</h2>
+            <p style="font-size: 13px;">{{ formatearFecha(tarea.fecha) }} - {{ tarea.hora }}</p>
           </ion-label>
           <ion-checkbox :checked="tarea.completado" @ionChange="cambiarEstado(tarea.id!, $event.detail.checked)" />
-          <ion-button color="danger" @click="eliminarTarea(tarea.id!)">Eliminar</ion-button>
+          <ion-button color="danger" @click="eliminarTarea(tarea.id!)" style="font-size: 12px;">Eliminar</ion-button>
         </ion-item>
       </ion-list>
     </ion-content>
@@ -66,7 +73,9 @@ import {
 import { ref, onMounted } from 'vue';
 import { add, close } from 'ionicons/icons';
 import { useTaskStore } from '@/stores/taskStore';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const taskStore = useTaskStore();
 const mostrarModal = ref(false);
 const nuevaDescripcion = ref('');
@@ -101,6 +110,8 @@ const formatearFecha = (fecha: string) => {
   const date = new Date(fecha);
   return new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short' }).format(date);
 };
+
+const goBack = () => router.push('/home');
 </script>
 
 <style scoped>

@@ -110,21 +110,30 @@ const goToRecovery = () => {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  padding: 20px;
   background: linear-gradient(135deg, #e1bb80, #9d8149);
   font-family: var(--main-font);
-  padding: 20px;
+  /* Nuevas propiedades para centrado perfecto */
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .form-wrapper {
   width: 100%;
   max-width: 400px;
-  padding: 25px;
+  padding: 30px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0px 8px 20px rgba(53, 34, 8, 0.3);
   text-align: center;
   border: 2px solid #e1bb80;
-  font-family: var(--main-font);
+  /* Asegura que el contenedor esté perfectamente centrado */
+  margin: auto;
+  /* Si necesitas un desplazamiento vertical específico */
+  position: relative;
+  top: 5%; /* Ajusta este valor si necesitas subirlo/bajarlo */
 }
 
 h1 {

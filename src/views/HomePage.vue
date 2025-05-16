@@ -10,11 +10,20 @@
             :class="{ activo: rutaActual === link.route }"
             fill="clear"
           >
+            <img
+              :src="link.icon"
+              alt="icon"
+              style="width: 20px; height: 20px; margin-right: 6px"
+            />
             {{ link.label }}
           </ion-button>
         </ion-buttons>
+
         <ion-buttons slot="end">
-          <ion-button @click="logout" color="light">Cerrar Sesión</ion-button>
+          <ion-button @click="logout" color="light">
+          <img :src="iconCerrarSesion" alt="cerrar" style="width: 20px; height: 20px; margin-right: 6px" />
+          Cerrar Sesión
+          </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -67,10 +76,13 @@ import { useRouter } from 'vue-router';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { ref } from 'vue';
-
 import { useTaskStore } from '@/stores/taskStore';
-const taskStore = useTaskStore();
+import iconHome from '@/components/icons/home.png';
+import iconTareas from '@/components/icons/tareas.png';
+import iconResumen from '@/components/icons/resumen.png';
+import iconCerrarSesion from '@/components/icons/cerrar-sesion.png';
 
+const taskStore = useTaskStore();
 const router = useRouter();
 
 const logout = async () => {
@@ -100,9 +112,9 @@ router.afterEach((to) => {
 });
 
 const navLinks = [
-  { label: 'Home', route: '/home' },
-  { label: 'Tareas', route: '/tareas' },
-  { label: 'Resumen', route: '/resumen' }
+  { label: 'Home', route: '/home', icon: iconHome },
+  { label: 'Tareas', route: '/tareas', icon: iconTareas },
+  { label: 'Resumen', route: '/resumen', icon: iconResumen }
 ];
 </script>
 
@@ -134,7 +146,7 @@ const navLinks = [
   border-radius: 10px;
   color: #ffffff;
   background: transparent;
-  cursor: pointer; /* Add pointer cursor for better UX */
+  cursor: pointer;
 }
 
 .icono-calendario {
