@@ -1,6 +1,6 @@
-// src/stores/taskStore.ts
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
+import { programarNotificacion, cancelarNotificacion } from '@/utils/notifications';
 
 export interface Tarea {
   id: string;
@@ -8,12 +8,13 @@ export interface Tarea {
   descripcion: string;
   fecha: string;
   completado: boolean;
+  notificacionId: number;
 }
 
 export const useTaskStore = defineStore('taskStore', () => {
   const tareas = ref<Tarea[]>([]);
 
-  // 🔁 Cargar tareas desde localStorage al inicio
+  // Cargar tareas desde localStorage
   const cargarTareas = () => {
     const data = localStorage.getItem('tareas');
     if (data) {
@@ -21,26 +22,38 @@ export const useTaskStore = defineStore('taskStore', () => {
     }
   };
 
-  // 💾 Guardar automáticamente en localStorage cada vez que cambian las tareas
+  // Guardar automáticamente en localStorage
   watch(tareas, (nuevas) => {
     localStorage.setItem('tareas', JSON.stringify(nuevas));
   }, { deep: true });
 
+  // Agregar tarea con notificación
   const agregarTarea = (hora: string, descripcion: string, fecha: string) => {
+    const notifId = Date.now(); // ID único
     const nueva: Tarea = {
       id: crypto.randomUUID(),
       hora,
       descripcion,
       fecha,
-      completado: false
+      completado: false,
+      notificacionId: notifId
     };
     tareas.value.push(nueva);
+
+    const fechaHora = new Date(`${fecha}T${hora}`);
+    programarNotificacion(notifId, 'Recordatorio', descripcion, fechaHora);
   };
 
+  // Eliminar tarea y cancelar notificación
   const eliminarTarea = (id: string) => {
-    tareas.value = tareas.value.filter(t => t.id !== id);
+    const tarea = tareas.value.find(t => t.id === id);
+    if (tarea) {
+      cancelarNotificacion(tarea.notificacionId);
+      tareas.value = tareas.value.filter(t => t.id !== id);
+    }
   };
 
+  // Marcar como completada o no
   const toggleCompletado = (id: string, estado: boolean) => {
     const tarea = tareas.value.find(t => t.id === id);
     if (tarea) tarea.completado = estado;
@@ -70,11 +83,3 @@ export const useTaskStore = defineStore('taskStore', () => {
     toggleCompletado
   };
 });
-// pinia.config.ts 
-import { createPinia } from 'pinia';
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
-
-const pinia = createPinia();
-pinia.use(piniaPluginPersistedstate);
-
-export default pinia;

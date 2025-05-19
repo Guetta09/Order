@@ -8,10 +8,10 @@ import RegisterPage from '../views/RegisterPage.vue';
 import DashboardPage from '../views/DashboardPage.vue';
 import HomePage from '../views/HomePage.vue';
 import TareasPage from '../views/TareasPage.vue';
-import ResumenPage from '../views/ResumenPage.vue'; // 👈 Aquí sigue ResumenPage.vue
+import ResumenPage from '../views/ResumenPage.vue'; 
 import ConfiguracionPage from '../views/ConfiguracionPage.vue';
-import Recover from '@/views/Recover.vue';
-import PerfilPage from '../views/Perfil.vue'; // 👈 Importamos la vista de perfil
+import Recover from '../views/Recover.vue'; // En lugar de @/views/Recover.vue
+import PerfilPage from '../views/Perfil.vue'; 
 
 // Definición de rutas
 const routes = [
@@ -23,7 +23,7 @@ const routes = [
   { path: '/dashboard', component: DashboardPage, meta: { requiresAuth: true } },
   { path: '/home', component: HomePage, meta: { requiresAuth: true } },
   { path: '/tareas', component: TareasPage, meta: { requiresAuth: true } },
-  { path: '/resumen', component: ResumenPage, meta: { requiresAuth: true } }, // 👈 Aquí lo dejamos en /resumen
+  { path: '/resumen', component: ResumenPage, meta: { requiresAuth: true } }, 
   { path: '/configuration', component: ConfiguracionPage, meta: { requiresAuth: true } },
   { path: '/perfil', component: PerfilPage, meta: { requiresAuth: true } },
 ];
