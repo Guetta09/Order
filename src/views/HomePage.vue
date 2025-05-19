@@ -21,8 +21,8 @@
 
         <ion-buttons slot="end">
           <ion-button @click="logout" color="light">
-          <img :src="iconCerrarSesion" alt="cerrar" style="width: 20px; height: 20px; margin-right: 6px" />
-          Cerrar Sesión
+            <img :src="iconCerrarSesion" alt="cerrar" style="width: 20px; height: 20px; margin-right: 6px" />
+            Cerrar Sesión
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -37,10 +37,10 @@
         </div>
       </div>
 
-      <!-- Horarios y tareas -->
+      <!-- Horarios y tareas del día actual -->
       <div class="tareas">
         <div
-          v-for="(tarea, index) in taskStore.tareas"
+          v-for="(tarea, index) in tareasDelDia"
           :key="index"
           class="tarea-item"
         >
@@ -50,10 +50,10 @@
         </div>
       </div>
 
-      <!-- Gráfico de resumen -->
+      <!-- Gráfico de resumen con progreso solo de tareas del día -->
       <div class="resumen">
         <h3>Resumen</h3>
-        <ResumenChart />
+        <ResumenChart :completadas="tareasCompletadas" :noCompletadas="tareasNoCompletadas" />
       </div>
     </ion-content>
   </ion-page>
@@ -75,7 +75,7 @@ import { calendarOutline } from 'ionicons/icons';
 import { useRouter } from 'vue-router';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useTaskStore } from '@/stores/taskStore';
 import iconHome from '@/components/icons/home.png';
 import iconTareas from '@/components/icons/tareas.png';
@@ -105,6 +105,24 @@ const diaSemana = diasSemana[fecha.getDay()];
 const dia = fecha.getDate();
 const mes = meses[fecha.getMonth()];
 const anio = fecha.getFullYear();
+
+// Filtro de tareas para solo mostrar las del día presente
+const tareasDelDia = computed(() => {
+  return taskStore.tareas.filter(tarea => {
+    const tareaFecha = new Date(tarea.fecha);
+    // Compara solo la fecha (sin hora)
+    return tareaFecha.toDateString() === fecha.toDateString();
+  });
+});
+
+// Progreso de tareas del día (solo toma las tareas del día)
+const tareasCompletadas = computed(() => {
+  return tareasDelDia.value.filter(tarea => tarea.completado).length;
+});
+
+const tareasNoCompletadas = computed(() => {
+  return tareasDelDia.value.length - tareasCompletadas.value;
+});
 
 const rutaActual = ref(router.currentRoute.value.path);
 router.afterEach((to) => {
