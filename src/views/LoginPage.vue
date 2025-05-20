@@ -2,6 +2,10 @@
   <ion-page>
     <ion-content class="login-container">
       <div class="form-wrapper">
+
+        <!-- Logo circular -->
+        <img src="@/components/icons/logo.png" alt="Logo de la app" class="logo" />
+
         <h1>Iniciar Sesión</h1>
 
         <input placeholder="Correo Electrónico" v-model="email" class="input" name="email" type="email" />
@@ -28,6 +32,7 @@
     </ion-content>
   </ion-page>
 </template>
+
 
 <script setup lang="ts">
 import { IonPage, IonContent } from '@ionic/vue';
@@ -57,7 +62,7 @@ const login = async () => {
 
   try {
     await signInWithEmailAndPassword(auth, email.value, password.value);
-    router.push('/dashboard');
+    router.push('/home');
   } catch (error: any) {
     handleAuthError(error.code);
   } finally {
@@ -143,6 +148,18 @@ h1 {
   letter-spacing: 0.5px;
   font-size: 1.75rem;
 }
+
+.logo {
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin: 0 auto 20px auto;
+  display: block;
+  border: 3px solid var(--accent-color);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
 
 .input {
   font-family: var(--main-font);

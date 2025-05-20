@@ -4,7 +4,7 @@
       <ion-toolbar style="--background: #800000;">
         <ion-buttons slot="start">
           <ion-button @click="goBack" color="light">
-            <img src="\src\components\icons\atras.png" alt="Atrás" style="height: 20px; margin-right: 8px;" />
+            <img src="@/components/icons/atras.png" alt="Atrás" style="height: 20px; margin-right: 8px;" />
             Atrás
           </ion-button>
         </ion-buttons>
@@ -15,11 +15,11 @@
     <ion-content class="ion-padding fondo-oscuro" :fullscreen="true">
       <!-- Gráfico de pastel -->
       <div class="grafico-container">
-        <h3 style="color: white; text-align: center;">Tareas Completadas por Día</h3>
+        <h3 style="color: white; text-align: center;">Tareas Completadas</h3>
         <Pie :data="pieChartData" :options="pieChartOptions" />
       </div>
 
-      <!-- Selector de semana tipo carrusel -->
+      <!-- Selector de semana -->
       <div class="selector-semana">
         <ion-button @click="abrirSelectorSemana" expand="block" color="tertiary">
           Semana del {{ semanaFormateada }}
@@ -28,7 +28,7 @@
 
       <!-- Gráfico de barras -->
       <div class="grafico-container">
-        <h3 style="color: white; text-align: center;">Efectividad Semanal</h3>
+        <h3 style="color: white; text-align: center;">Efectividad por Día (%)</h3>
         <Bar :data="barChartData" :options="barChartOptions" />
       </div>
     </ion-content>
@@ -37,25 +37,13 @@
 
 <script setup lang="ts">
 import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonButtons,
-  IonButton,
-  pickerController
+  IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
+  IonButtons, IonButton, pickerController
 } from '@ionic/vue';
 import { Pie, Bar } from 'vue-chartjs';
 import {
-  Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  BarElement,
-  CategoryScale,
-  LinearScale
+  Chart as ChartJS, Title, Tooltip, Legend, ArcElement,
+  BarElement, CategoryScale, LinearScale
 } from 'chart.js';
 import { computed, ref } from 'vue';
 import { useTaskStore } from '@/stores/taskStore';
@@ -69,31 +57,23 @@ const router = useRouter();
 const taskStore = useTaskStore();
 const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 
-// Semana actual
-const hoy = new Date();
-const semanas = generarSemanasDesde(hoy, 8);
-const semanaSeleccionada = ref(semanas[0]);
-
+// Generar semanas desde la actual
 function generarSemanasDesde(actual: Date, cantidad: number) {
   const lista = [];
   const hoy = new Date(actual);
+  hoy.setHours(0, 0, 0, 0);
 
-  // Asegurar que se tome la semana actual correctamente
-  const finActual = new Date(hoy);
-  const inicioActual = new Date(hoy);
+  const diaSemana = hoy.getDay();
+  const lunesActual = new Date(hoy);
+  lunesActual.setDate(hoy.getDate() - (diaSemana === 0 ? 6 : diaSemana - 1));
+  const domingoActual = new Date(lunesActual);
+  domingoActual.setDate(lunesActual.getDate() + 6);
 
-  const diaSemana = hoy.getDay(); // 0 (domingo) - 6 (sábado)
-  const diferenciaLunes = diaSemana === 0 ? -6 : 1 - diaSemana;
+  lista.push({ inicio: new Date(lunesActual), fin: new Date(domingoActual) });
 
-  inicioActual.setDate(hoy.getDate() + diferenciaLunes);
-  finActual.setDate(inicioActual.getDate() + 6);
-
-  lista.push({ inicio: new Date(inicioActual), fin: new Date(finActual) });
-
-  // Agregar semanas anteriores
   for (let i = 1; i < cantidad; i++) {
-    const inicio = new Date(inicioActual);
-    const fin = new Date(finActual);
+    const inicio = new Date(lunesActual);
+    const fin = new Date(domingoActual);
     inicio.setDate(inicio.getDate() - 7 * i);
     fin.setDate(fin.getDate() - 7 * i);
     lista.push({ inicio, fin });
@@ -102,6 +82,8 @@ function generarSemanasDesde(actual: Date, cantidad: number) {
   return lista;
 }
 
+const semanas = generarSemanasDesde(new Date(), 8);
+const semanaSeleccionada = ref(semanas[0]);
 
 const semanaFormateada = computed(() => {
   const sem = semanaSeleccionada.value;
@@ -160,22 +142,40 @@ const pieChartOptions = {
   }
 };
 
-// Gráfico de barras
+// Gráfico de barras: efectividad diaria (%)
 const tareasPorDia = computed(() => {
-  const conteo: Record<string, number> = {
-    lunes: 0, martes: 0, miércoles: 0, jueves: 0, viernes: 0, sábado: 0, domingo: 0
+  const conteoTotal: Record<string, number> = {
+    lunes: 0, martes: 0, miércoles: 0, jueves: 0,
+    viernes: 0, sábado: 0, domingo: 0
+  };
+  const completadas: Record<string, number> = {
+    lunes: 0, martes: 0, miércoles: 0, jueves: 0,
+    viernes: 0, sábado: 0, domingo: 0
   };
 
   for (const tarea of tareasFiltradasSemana.value) {
+    const fecha = new Date(tarea.fecha);
+    const diaNombre = dias[fecha.getDay()];
+    conteoTotal[diaNombre]++;
     if (tarea.completado) {
-      const fecha = new Date(tarea.fecha);
-      const diaNombre = dias[fecha.getDay()];
-      conteo[diaNombre]++;
+      completadas[diaNombre]++;
     }
   }
 
-  return conteo;
+  return {
+    lunes: calcularPorcentaje(completadas.lunes, conteoTotal.lunes),
+    martes: calcularPorcentaje(completadas.martes, conteoTotal.martes),
+    miércoles: calcularPorcentaje(completadas.miércoles, conteoTotal.miércoles),
+    jueves: calcularPorcentaje(completadas.jueves, conteoTotal.jueves),
+    viernes: calcularPorcentaje(completadas.viernes, conteoTotal.viernes),
+    sábado: calcularPorcentaje(completadas.sábado, conteoTotal.sábado),
+    domingo: calcularPorcentaje(completadas.domingo, conteoTotal.domingo)
+  };
 });
+
+const calcularPorcentaje = (hechas: number, total: number) => {
+  return total === 0 ? 0 : Math.round((hechas / total) * 100);
+};
 
 const barChartData = computed(() => ({
   labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
@@ -183,13 +183,13 @@ const barChartData = computed(() => ({
     label: 'Efectividad diaria (%)',
     backgroundColor: '#2196f3',
     data: [
-      tareasPorDia.value.lunes * 10,
-      tareasPorDia.value.martes * 10,
-      tareasPorDia.value.miércoles * 10,
-      tareasPorDia.value.jueves * 10,
-      tareasPorDia.value.viernes * 10,
-      tareasPorDia.value.sábado * 10,
-      tareasPorDia.value.domingo * 10
+      tareasPorDia.value.lunes,
+      tareasPorDia.value.martes,
+      tareasPorDia.value.miércoles,
+      tareasPorDia.value.jueves,
+      tareasPorDia.value.viernes,
+      tareasPorDia.value.sábado,
+      tareasPorDia.value.domingo
     ]
   }]
 }));

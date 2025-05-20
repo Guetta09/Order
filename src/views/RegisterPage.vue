@@ -2,6 +2,10 @@
   <ion-page>
     <ion-content class="register-container">
       <div class="form-wrapper">
+
+        <!-- Logo circular -->
+        <img src="@/components/icons/logo.png" alt="Logo de la app" class="logo" />
+
         <h1>Registro</h1>
 
         <input v-model="firstName" class="input" placeholder="Nombre" />
@@ -24,43 +28,47 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent } from '@ionic/vue'
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { auth } from '../firebase'
-import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { IonPage, IonContent } from '@ionic/vue';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { auth, db } from '../firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
-const router = useRouter()
+const router = useRouter();
 
-const firstName = ref('')
-const lastName = ref('')
-const email = ref('')
-const password = ref('')
-const phone = ref('')
+const firstName = ref('');
+const lastName = ref('');
+const email = ref('');
+const password = ref('');
+const phone = ref('');
 
 const register = async () => {
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value)
-    const user = userCredential.user
+    const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
+    const user = userCredential.user;
 
-    // Guardar los datos del perfil en localStorage
-    localStorage.setItem('userProfile', JSON.stringify({
+    const userData = {
+      uid: user.uid,
       nombre: firstName.value,
       apellido: lastName.value,
-      telefono: phone.value || ''
-    }))
+      email: user.email,
+      telefono: phone.value || '',
+      creadoEn: new Date()
+    };
 
-    alert('🎉 Registro exitoso. Bienvenido(a), ' + firstName.value + '!')
-    router.push('/home') // Redirigir a home directamente
+    await setDoc(doc(db, 'usuarios', user.uid), userData);
+
+    alert('Registro exitoso. Ahora puedes iniciar sesión.');
+    router.push('/');
   } catch (error: any) {
-    console.error('❌ Error al registrar:', error)
     if (error.code === 'auth/email-already-in-use') {
-      alert('Este correo ya está registrado.')
+      alert('Este correo ya está registrado.');
     } else {
-      alert('Error al registrar: ' + error.message)
+      alert('Error al registrar: ' + error.message);
     }
   }
-}
+};
 </script>
 
 <style scoped>
@@ -70,6 +78,9 @@ const register = async () => {
   justify-content: center;
   height: 100%;
   background: linear-gradient(135deg, #e1bb80, #9d8149);
+  width: 100vw;
+  height: 100vh;
+  box-sizing: border-box;
 }
 
 .form-wrapper {
@@ -80,8 +91,10 @@ const register = async () => {
   border-radius: 12px;
   box-shadow: 0px 8px 20px rgba(53, 34, 8, 0.3);
   text-align: center;
-  margin: 0 auto;
+  margin: auto;
   border: 2px solid #e1bb80;
+  position: relative;
+  top: 5%; /* Mismo comportamiento que login */
 }
 
 .input {
@@ -112,5 +125,16 @@ const register = async () => {
 
 .register-button:hover {
   background-color: #5a3d17;
+}
+
+.logo {
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin: 0 auto 20px auto;
+  display: block;
+  border: 3px solid #e1bb80;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 </style>

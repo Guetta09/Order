@@ -1,3 +1,4 @@
+// src/stores/taskStore.ts
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 import { programarNotificacion, cancelarNotificacion } from '@/utils/notifications';
@@ -14,7 +15,7 @@ export interface Tarea {
 export const useTaskStore = defineStore('taskStore', () => {
   const tareas = ref<Tarea[]>([]);
 
-  // Cargar tareas desde localStorage
+  // 🟡 Cargar tareas desde localStorage
   const cargarTareas = () => {
     const data = localStorage.getItem('tareas');
     if (data) {
@@ -22,14 +23,14 @@ export const useTaskStore = defineStore('taskStore', () => {
     }
   };
 
-  // Guardar automáticamente en localStorage
+  // 🟢 Guardar tareas cada vez que se actualicen
   watch(tareas, (nuevas) => {
     localStorage.setItem('tareas', JSON.stringify(nuevas));
   }, { deep: true });
 
-  // Agregar tarea con notificación
+  // 🟠 Agregar tarea con notificación
   const agregarTarea = (hora: string, descripcion: string, fecha: string) => {
-    const notifId = Date.now(); // ID único
+    const notifId = Date.now();
     const nueva: Tarea = {
       id: crypto.randomUUID(),
       hora,
@@ -41,10 +42,12 @@ export const useTaskStore = defineStore('taskStore', () => {
     tareas.value.push(nueva);
 
     const fechaHora = new Date(`${fecha}T${hora}`);
-    programarNotificacion(notifId, 'Recordatorio', descripcion, fechaHora);
+    if (fechaHora > new Date()) {
+      programarNotificacion(notifId, 'Recordatorio', descripcion, fechaHora);
+    }
   };
 
-  // Eliminar tarea y cancelar notificación
+  // 🔴 Eliminar tarea
   const eliminarTarea = (id: string) => {
     const tarea = tareas.value.find(t => t.id === id);
     if (tarea) {
@@ -53,7 +56,6 @@ export const useTaskStore = defineStore('taskStore', () => {
     }
   };
 
-  // Marcar como completada o no
   const toggleCompletado = (id: string, estado: boolean) => {
     const tarea = tareas.value.find(t => t.id === id);
     if (tarea) tarea.completado = estado;
