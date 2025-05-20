@@ -4,6 +4,7 @@ import router from './router';
 import { IonicVue } from '@ionic/vue';
 import { createPinia } from 'pinia';
 import { solicitarPermisosNotificaciones } from './utils/notifications';
+import { useTaskStore } from './stores/taskStore';
 
 // Ionic styles
 import '@ionic/vue/css/core.css'
@@ -30,4 +31,7 @@ app.use(router);
 router.isReady().then(() => {
   app.mount('#app');
   solicitarPermisosNotificaciones(); // ✅ Solicita notificaciones al iniciar
+
+  const taskStore = useTaskStore();
+  taskStore.cargarTareas();
 });
