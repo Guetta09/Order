@@ -46,4 +46,4 @@ Si quieres ayudar a mejorar Order, siéntete libre de hacer un fork y enviar un 
 
 📩 Para dudas o sugerencias, ¡contáctame!
 
-💡 Desarrollado por: David Mosquera 🚀
+💡 Desarrollado por: Andy Lozano 🚀
